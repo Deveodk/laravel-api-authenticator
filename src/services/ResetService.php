@@ -7,6 +7,7 @@ use DeveoDK\LaravelApiAuthenticator\events\PasswordReset;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\PasswordResetNotCreated;
 use DeveoDK\LaravelApiAuthenticator\Models\JwtPasswordReset;
 use DeveoDK\LaravelApiAuthenticator\Notifications\PasswordResetNotification;
+use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Notifications\ChannelManager;
@@ -22,6 +23,9 @@ class ResetService extends BaseService
     /** @var JwtService */
     private $jwtService;
 
+    /** @var Hasher */
+    private $hasher;
+
     /** @var ApiAuthenticatorService */
     private $apiAuthenticateService;
 
@@ -32,8 +36,10 @@ class ResetService extends BaseService
         ChannelManager $notification,
         RequestService $requestService,
         JwtService $jwtService,
-        ApiAuthenticatorService $apiAuthenticatorService
+        ApiAuthenticatorService $apiAuthenticatorService,
+        Hasher $hasher
     ) {
+        $this->hasher = $hasher;
         $this->apiAuthenticateService = $apiAuthenticatorService;
         $this->jwtService = $jwtService;
         $this->notification = $notification;
@@ -76,7 +82,7 @@ class ResetService extends BaseService
 
         $authenticable = $resetModel->authenticable;
 
-        $authenticable->password = $password;
+        $authenticable->password = $this->hasher->make($password);
         $authenticable->save();
 
         $resetModel->reset = Carbon::now()->toDateTimeString();
