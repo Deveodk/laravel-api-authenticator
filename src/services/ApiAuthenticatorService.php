@@ -78,7 +78,7 @@ class ApiAuthenticatorService extends BaseService
             throw new UserNotAuthenticated();
         }
 
-        $this->generateAuthenticateToken($user->id, $model);
+        $token = $this->generateAuthenticateToken($user->id, $model);
 
         $this->dispatcher->fire(new UserWasAuthenticated($token));
 
