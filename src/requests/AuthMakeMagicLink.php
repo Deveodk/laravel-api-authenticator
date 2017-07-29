@@ -31,7 +31,8 @@ class AuthMakeMagicLink extends FormRequest
     {
         return [
             'email' => $this->email,
-            'url' => $this->url
+            'url' => $this->url,
+            'model' => $this->model
         ];
     }
 }

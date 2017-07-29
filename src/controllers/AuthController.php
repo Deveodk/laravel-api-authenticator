@@ -2,9 +2,11 @@
 
 namespace DeveoDK\LaravelApiAuthenticator\Controllers;
 
-use DeveoDK\LaravelApiAuthenticator\Requests\AuthRequest;
+use DeveoDK\LaravelApiAuthenticator\Requests\AuthAccountsRequest;
+use DeveoDK\LaravelApiAuthenticator\Requests\AuthPasswordRequest;
 use DeveoDK\LaravelApiAuthenticator\Services\ApiAuthenticatorService;
 use DeveoDK\LaravelApiAuthenticator\Services\OptionService;
+use DeveoDK\LaravelApiAuthenticator\Transformers\AuthAccountTransformer;
 use DeveoDK\LaravelApiAuthenticator\Transformers\AuthInvalidatedTransformer;
 use DeveoDK\LaravelApiAuthenticator\Transformers\AuthorizedTransformer;
 use DeveoDK\LaravelApiAuthenticator\Transformers\AuthRefreshedTransformer;
@@ -31,11 +33,24 @@ class AuthController extends BaseController
     }
 
     /**
-     * Authenticate the from email and password
-     * @param AuthRequest $request
+     * @param AuthAccountsRequest $request
      * @return JsonResponse
      */
-    public function authenticate(AuthRequest $request)
+    public function accounts(AuthAccountsRequest $request)
+    {
+        $data = $this->apiAuthenticatorService->accounts($request->data());
+
+        return response()
+            ->json($this->apiAuthenticatorService
+                ->setTransformer(new AuthAccountTransformer())->transformCollection($data));
+    }
+
+    /**
+     * Authenticate the from email and password
+     * @param AuthPasswordRequest $request
+     * @return JsonResponse
+     */
+    public function authenticate(AuthPasswordRequest $request)
     {
         $data = $this->apiAuthenticatorService->authenticate($request->data());
 
@@ -58,13 +73,15 @@ class AuthController extends BaseController
     /**
      * The actual refresh process gets handled in the middleware
      * @param Request $request
-     * @return array
+     * @return JsonResponse
      */
     public function authenticatedRefresh(Request $request)
     {
         $this->apiAuthenticatorService->refreshToken();
         $token = str_replace("Bearer ", "", $request->header('authorization'));
-        return $this->apiAuthenticatorService->setTransformer(new AuthRefreshedTransformer())->transformItem($token);
+        $data = $this->apiAuthenticatorService->setTransformer(new AuthRefreshedTransformer())->transformItem($token);
+
+        return response()->json($data)->header('Authorization', $token);
     }
 
     /**
@@ -76,6 +93,8 @@ class AuthController extends BaseController
     {
         $this->apiAuthenticatorService->invalidateToken();
         $token = str_replace("Bearer ", "", $request->header('authorization'));
-        return $this->apiAuthenticatorService->setTransformer(new AuthInvalidatedTransformer())->transformItem($token);
+        $data = $this->apiAuthenticatorService->setTransformer(new AuthInvalidatedTransformer())->transformItem($token);
+
+        return response()->json($data);
     }
 }

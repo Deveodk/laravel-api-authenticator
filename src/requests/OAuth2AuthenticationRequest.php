@@ -4,7 +4,7 @@ namespace DeveoDK\LaravelApiAuthenticator\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class MakePasswordResetLink extends FormRequest
+class OAuth2AuthenticationRequest extends FormRequest
 {
 
     public function authorize()
@@ -18,9 +18,9 @@ class MakePasswordResetLink extends FormRequest
     public function rules()
     {
         return [
-            'email' => 'email|required',
-            'url' => 'required',
-            'model' => 'string'
+            'access_token' => 'required',
+            'redirect_url' => 'required',
+            'model' => 'required'
         ];
     }
 
@@ -31,8 +31,8 @@ class MakePasswordResetLink extends FormRequest
     public function data()
     {
         return [
-            'email' => $this->email,
-            'url' => $this->url,
+            'access_token' => $this->access_token,
+            'redirect_url' => $this->redirect_url,
             'model' => $this->model
         ];
     }

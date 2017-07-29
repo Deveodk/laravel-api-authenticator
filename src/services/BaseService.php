@@ -2,7 +2,6 @@
 
 namespace DeveoDK\LaravelApiAuthenticator\Services;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Database\DatabaseManager;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
@@ -40,21 +39,6 @@ abstract class BaseService
         $this->database = $database;
         $this->defaultModel = $this->optionService->get('defaultAuthenticationModel');
         $this->dispatcher = $dispatcher;
-    }
-
-    public function associateImage($data, $attributes)
-    {
-        $data->addMedia($attributes['image'])
-            ->usingName($attributes['name'])
-            ->toMediaLibrary('images');
-    }
-
-    public function updateImages($data, $attributes)
-    {
-        $data->clearMediaCollection('images');
-        $data->addMedia($attributes['image'])
-            ->usingName($attributes['name'])
-            ->toMediaLibrary('images');
     }
 
     public function transformItem($data)

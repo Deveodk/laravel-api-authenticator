@@ -29,6 +29,21 @@ class ResetService extends BaseService
     /** @var ApiAuthenticatorService */
     private $apiAuthenticateService;
 
+    /** @var ReflectionService */
+    private $reflectionService;
+
+    /**
+     * ResetService constructor.
+     * @param Dispatcher $dispatcher
+     * @param DatabaseManager $database
+     * @param OptionService $optionService
+     * @param ChannelManager $notification
+     * @param RequestService $requestService
+     * @param JwtService $jwtService
+     * @param ApiAuthenticatorService $apiAuthenticatorService
+     * @param Hasher $hasher
+     * @param ReflectionService $reflectionService
+     */
     public function __construct(
         Dispatcher $dispatcher,
         DatabaseManager $database,
@@ -37,13 +52,15 @@ class ResetService extends BaseService
         RequestService $requestService,
         JwtService $jwtService,
         ApiAuthenticatorService $apiAuthenticatorService,
-        Hasher $hasher
+        Hasher $hasher,
+        ReflectionService $reflectionService
     ) {
         $this->hasher = $hasher;
         $this->apiAuthenticateService = $apiAuthenticatorService;
         $this->jwtService = $jwtService;
         $this->notification = $notification;
         $this->requestService = $requestService;
+        $this->reflectionService = $reflectionService;
         parent::__construct($dispatcher, $database, $optionService);
     }
 
@@ -104,7 +121,10 @@ class ResetService extends BaseService
         $email = $params['email'];
         $url = $params['url'];
 
-        $model = (isset($params['model'])) ? $params['model'] : $this->optionService->get('defaultAuthenticationModel');
+        $model = $this->reflectionService->getModelInstanceFromResponse($params);
+        if (!$model) {
+            return false;
+        }
 
         $authenticable = (new $model())->where('email', '=', $email)->first();
 

@@ -8,6 +8,6 @@ class UserNotFoundException extends HttpException
 {
     public function __construct()
     {
-        parent::__construct(404, 'The User was not found.');
+        parent::__construct(404, trans('apiAuth.exceptions.userNotFound'));
     }
 }

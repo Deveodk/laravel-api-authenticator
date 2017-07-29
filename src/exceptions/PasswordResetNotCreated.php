@@ -7,6 +7,6 @@ class PasswordResetNotCreated extends HttpException
 {
     public function __construct()
     {
-        parent::__construct(400, 'Password reset not created');
+        parent::__construct(400, trans('apiAuth.exceptions.passwordResetNotCreated'));
     }
 }

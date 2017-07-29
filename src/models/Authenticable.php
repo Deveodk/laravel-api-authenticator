@@ -5,10 +5,13 @@ namespace DeveoDK\LaravelApiAuthenticator\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Notifications\Notifiable;
+use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
+use Spatie\MediaLibrary\HasMedia\Interfaces\HasMedia;
+use Spatie\Permission\Traits\HasRoles;
 
-abstract class Authenticable extends Model
+abstract class Authenticable extends Model implements HasMedia
 {
-    use Notifiable;
+    use Notifiable, HasMediaTrait, HasRoles;
 
     public function authenticateAttempts()
     {
@@ -22,23 +25,5 @@ abstract class Authenticable extends Model
     public function blacklists()
     {
         return $this->morphMany(JwtBlacklist::class, 'authenticable');
-    }
-
-    /**
-     * Return a collection of refreshed tokens for model
-     * @return MorphMany
-     */
-    public function refreshes()
-    {
-        return $this->morphMany(JwtRefreshToken::class, 'authenticable');
-    }
-
-    /**
-     * Return a collection of tokens for model
-     * @return MorphMany
-     */
-    public function tokens()
-    {
-        return $this->morphMany(JwtToken::class, 'authenticable');
     }
 }

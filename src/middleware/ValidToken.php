@@ -10,7 +10,7 @@ use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
-class HasToken
+class ValidToken
 {
     /** @var JwtService */
     private $jwtService;
@@ -37,6 +37,7 @@ class HasToken
             if (!$token = $this->jwtService->getToken()) {
                 return response()->json('token_absent', 401);
             }
+            $this->jwtService->getPayload($token);
         } catch (TokenExpiredException $e) {
             return response()->json('token_expired', 401);
         } catch (TokenBlacklistedException $e) {

@@ -7,6 +7,6 @@ class UserNotAuthenticated extends HttpException
 {
     public function __construct()
     {
-        parent::__construct(401, 'The User was not authenticated.');
+        parent::__construct(401, trans('apiAuth.exceptions.userNotAuthenticated'));
     }
 }

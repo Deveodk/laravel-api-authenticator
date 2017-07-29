@@ -3,28 +3,25 @@
 namespace DeveoDK\LaravelApiAuthenticator\Transformers;
 
 use DeveoDK\LaravelApiAuthenticator\Models\Authenticable;
+use Illuminate\Database\Eloquent\Model;
 use League\Fractal;
+use ReflectionClass;
 
-class AuthTransformer extends Fractal\TransformerAbstract
+class AuthAccountTransformer extends Fractal\TransformerAbstract
 {
     protected $defaultIncludes = [
         'profile_pictures'
     ];
     protected $availableIncludes = [];
 
-    public function transform(Authenticable $data)
+    public function transform($data)
     {
         return [
-            'id'      => (int) $data->id,
+            'model' => (new ReflectionClass($data))->getShortName(),
             'email' => (string) $data->email,
-            'firstname' => (string) $data->firstname,
-            'lastname' => (string) $data->lastname,
             'fullname' => (string) "".$data->firstname." ".$data->lastname."",
             'initials' => (string) str_limit($data->firstname, $limit = 1, $end = '').
-                str_limit($data->lastname, $limit = 1, $end = ''),
-            'roles' => $data->roles()->get(),
-            'created_at' => (object) $data->created_at,
-            'updated_at' => (object) $data->updated_at,
+                str_limit($data->lastname, $limit = 1, $end = '')
         ];
     }
 

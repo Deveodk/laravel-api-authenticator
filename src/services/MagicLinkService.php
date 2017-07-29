@@ -25,17 +25,22 @@ class MagicLinkService extends BaseService
     /** @var JwtService */
     private $jwtService;
 
+    /** @var ReflectionService */
+    private $reflectionService;
+
     public function __construct(
         Dispatcher $dispatcher,
         DatabaseManager $database,
         OptionService $optionService,
         ChannelManager $notification,
         RequestService $requestService,
-        JwtService $jwtService
+        JwtService $jwtService,
+        ReflectionService $reflectionService
     ) {
         $this->jwtService = $jwtService;
         $this->notification = $notification;
         $this->requestService = $requestService;
+        $this->reflectionService = $reflectionService;
         parent::__construct($dispatcher, $database, $optionService);
     }
 
@@ -70,7 +75,7 @@ class MagicLinkService extends BaseService
         $email = $params['email'];
         $url = $params['url'];
 
-        $model = (isset($params['model'])) ? $params['model'] : $this->optionService->get('defaultAuthenticationModel');
+        $model = $this->reflectionService->getModelInstanceFromResponse($params);
 
         $authenticable = (new $model())->where('email', '=', $email)->first();
 

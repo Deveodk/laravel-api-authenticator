@@ -15,13 +15,18 @@ class BlacklistService extends BaseService
     /** @var RequestService */
     private $requestService;
 
+    /** @var ReflectionService */
+    private $reflectionService;
+
     public function __construct(
         Dispatcher $dispatcher,
         DatabaseManager $database,
         OptionService $optionService,
         Request $request,
-        RequestService $requestService
+        RequestService $requestService,
+        ReflectionService $reflectionService
     ) {
+        $this->reflectionService = $reflectionService;
         $this->request = $request;
         $this->requestService = $requestService;
         parent::__construct($dispatcher, $database, $optionService);
@@ -35,6 +40,7 @@ class BlacklistService extends BaseService
      */
     public function create($model, $id, $token, $key)
     {
+        $model = $this->reflectionService->getAuthenticableFromModelName($model);
         $authenticableModel = (new $model)->where('id', '=', $id)->first();
 
         $log = new JwtBlacklist();

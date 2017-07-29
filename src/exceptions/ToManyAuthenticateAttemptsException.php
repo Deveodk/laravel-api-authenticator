@@ -7,6 +7,6 @@ class ToManyAuthenticateAttemptsException extends HttpException
 {
     public function __construct()
     {
-        parent::__construct(429, 'The have been to many login attempts');
+        parent::__construct(429, trans('apiAuth.exceptions.toManyLoginAttempts'));
     }
 }

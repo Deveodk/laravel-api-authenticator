@@ -7,6 +7,6 @@ class PasswordResetTokenInvalid extends HttpException
 {
     public function __construct()
     {
-        parent::__construct(401, 'Password reset token was invalid');
+        parent::__construct(401, trans('apiAuth.exceptions.passwordResetNotCreated'));
     }
 }

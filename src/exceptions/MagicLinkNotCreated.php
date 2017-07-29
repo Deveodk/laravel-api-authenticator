@@ -7,6 +7,6 @@ class MagicLinkNotCreated extends HttpException
 {
     public function __construct()
     {
-        parent::__construct(400, 'The magic link was not created');
+        parent::__construct(400, trans('apiAuth.exceptions.magicLinkNotCreated'));
     }
 }

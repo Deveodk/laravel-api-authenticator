@@ -3,9 +3,15 @@
 namespace DeveoDK\LaravelApiAuthenticator;
 
 use DeveoDK\LaravelApiAuthenticator\Middleware\HasToken;
+use DeveoDK\LaravelApiAuthenticator\Middleware\ValidToken;
+use Facebook\Facebook;
+use Google_Client;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Fractal\FractalServiceProvider;
+use Spatie\MediaLibrary\MediaLibraryServiceProvider;
+use Spatie\Permission\PermissionServiceProvider;
 use Tymon\JWTAuth\Middleware\GetUserFromToken;
 use Tymon\JWTAuth\Middleware\RefreshToken;
 use Tymon\JWTAuth\Providers\JWTAuthServiceProvider;
@@ -34,17 +40,28 @@ class LaravelApiAuthenticatorServiceProvider extends ServiceProvider
         $this->app->register(
             JWTAuthServiceProvider::class
         );
-
-        $router->aliasMiddleware('jwt.hasToken', HasToken::class);
-
+        $this->app->register(
+            MediaLibraryServiceProvider::class
+        );
+        $this->app->register(
+            PermissionServiceProvider::class
+        );
         $this->app->register(
             EventServiceProvider::class
         );
-        require __DIR__ . '/routes.php';
+
+        $router->aliasMiddleware('jwt.hasToken', HasToken::class);
+        $router->aliasMiddleware('jwt.validToken', ValidToken::class);
+
+        $this->loadRoutesFrom( __DIR__ . '/routes.php');
+
+        require __DIR__ . '/../database/seeders/BasicRolesSeeder.php';
 
         if ($this->app->runningInConsole()) {
             $this->registerMigrations();
         }
+
+        $this->registerDependencies();
     }
 
     /**
@@ -55,5 +72,26 @@ class LaravelApiAuthenticatorServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         return;
+    }
+
+    /**
+     * Register application dependencies
+     */
+    protected function registerDependencies()
+    {
+        $this->app->bind(Facebook::class, function (Application $application) {
+            return new Facebook([
+                'app_id' => env('FACEBOOK_APP_ID', null),
+                'app_secret' => env('FACEBOOK_APP_SECRET', null),
+                'default_graph_version' => Facebook::DEFAULT_GRAPH_VERSION,
+            ]);
+        });
+
+        $this->app->bind(Google_Client::class, function (Application $application) {
+            $client = new Google_Client();
+            $client->setClientId(env('GOOGLE_APP_ID'));
+            $client->setClientSecret(env('GOOGLE_APP_SECRET'));
+            return $client;
+        });
     }
 }

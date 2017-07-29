@@ -7,6 +7,6 @@ class TokenNotInvalidated extends HttpException
 {
     public function __construct()
     {
-        parent::__construct(400, 'The token was not invalidated');
+        parent::__construct(400, trans('apiAuth.exceptions.tokenNotInvalidated'));
     }
 }

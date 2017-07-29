@@ -2,6 +2,7 @@
 
 namespace DeveoDK\LaravelApiAuthenticator\Services;
 
+use ReflectionClass;
 use Tymon\JWTAuth\JWTAuth;
 use Tymon\JWTAuth\JWTManager;
 
@@ -45,7 +46,7 @@ class JwtService
         $manager = $this->jwtManager
             ->getPayloadFactory()
             ->addClaim('sub', $id)
-            ->addClaim('model', $model);
+            ->addClaim('model', (new ReflectionClass($model))->getShortName());
 
         if ($ttl) {
             $manager->setTTL($ttl);
@@ -65,6 +66,16 @@ class JwtService
     public function getToken()
     {
         return $this->jwtAuth->getToken();
+    }
+
+    /**
+     * Parse token from request
+     *
+     * @return JWTAuth
+     */
+    public function parseToken()
+    {
+        return $this->jwtAuth->parseToken();
     }
 
     /**

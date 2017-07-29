@@ -7,6 +7,7 @@ use DeveoDK\LaravelApiAuthenticator\events\AuthenticateAttempt;
 use DeveoDK\LaravelApiAuthenticator\events\TokenInvalidated;
 use DeveoDK\LaravelApiAuthenticator\events\TokenRefreshed;
 use DeveoDK\LaravelApiAuthenticator\events\UserWasAuthenticated;
+use DeveoDK\LaravelApiAuthenticator\Exceptions\AccountNotFoundException;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\MagicLinkNotCreated;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\TokenNotInvalidated;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\ToManyMagicLink;
@@ -19,6 +20,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Notifications\ChannelManager;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 
 class ApiAuthenticatorService extends BaseService
@@ -35,6 +37,9 @@ class ApiAuthenticatorService extends BaseService
     /** @var RequestService */
     private $requestService;
 
+    /** @var ReflectionService */
+    private $reflectionService;
+
     public function __construct(
         Dispatcher $dispatcher,
         DatabaseManager $database,
@@ -42,12 +47,14 @@ class ApiAuthenticatorService extends BaseService
         JwtService $jwtService,
         Hasher $hasher,
         ChannelManager $notification,
-        RequestService $requestService
+        RequestService $requestService,
+        ReflectionService $reflectionService
     ) {
         $this->requestService = $requestService;
         $this->notification = $notification;
         $this->hasher = $hasher;
         $this->jwtService = $jwtService;
+        $this->reflectionService = $reflectionService;
         parent::__construct($dispatcher, $database, $optionService);
     }
 
@@ -60,11 +67,49 @@ class ApiAuthenticatorService extends BaseService
         return $query;
     }
 
-    // Authenticate
+    /**
+     * Get a list of accounts for multi tenancy auth
+     *
+     * @param $params
+     * @return array
+     */
+    public function accounts($params)
+    {
+        $models = $this->optionService->get('authenticationModels');
+
+        $collection = new Collection();
+
+        foreach ($models as $model) {
+            $match = (new $model())->where('email', '=', $params['email'])->first();
+
+            if (!$match) {
+                continue;
+            }
+
+            $collection->prepend($match);
+        }
+
+        $count = count($collection->all());
+
+        if ($count === 0) {
+            throw new AccountNotFoundException();
+        }
+
+        return $collection->all();
+    }
+
+    /**
+     * @param $params
+     * @return \Tymon\JWTAuth\Token|false
+     */
     public function authenticate($params)
     {
         // Do necessary reflections
-        $model = (isset($params['model'])) ? $params['model'] : $this->optionService->get('defaultAuthenticationModel');
+        $model = $this->reflectionService->getModelInstanceFromResponse($params);
+
+        if (!$model) {
+            return false;
+        }
 
         $user = (new $model())->where('email', '=', $params['email'])->first();
 
@@ -105,19 +150,28 @@ class ApiAuthenticatorService extends BaseService
     public function getAuthenticableFromToken($token)
     {
         $payload = json_decode($this->jwtService->getPayload($token));
-        $model = (isset($payload->model)) ? $payload->model : $this->optionService->get('defaultAuthenticationModel');
+
+        // Do necessary reflections
+        $model = $this->reflectionService->getModelInstanceFromPayload($payload);
+        if (!$model) {
+            return false;
+        }
 
         return (new $model())->findOrFail($payload->sub);
     }
 
     /**
-     * @return Model
+     * @return Model|bool
      */
     public function getUser()
     {
         $token = $this->jwtService->getToken();
         $payload = json_decode($this->jwtService->getPayload($token));
-        $model = (isset($payload->model)) ? $payload->model : $this->optionService->get('defaultAuthenticationModel');
+        // Do necessary reflections
+        $model = $this->reflectionService->getModelInstanceFromPayload($payload);
+        if (!$model) {
+            return false;
+        }
 
         return (new $model())->findOrFail($payload->sub);
     }
@@ -132,7 +186,11 @@ class ApiAuthenticatorService extends BaseService
         }
 
         $payload = json_decode($this->jwtService->getPayload($token));
-        $model = (isset($payload->model)) ? $payload->model : $this->optionService->get('defaultAuthenticationModel');
+
+        $model = $this->reflectionService->getModelInstanceFromPayload($payload);
+        if (!$model) {
+            return false;
+        }
 
         $this->dispatcher->fire(new TokenInvalidated((new $model())->findOrFail($payload->sub)));
         $this->jwtService->invalidate($token);

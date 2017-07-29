@@ -9,6 +9,10 @@ return [
         'api\V1\User\Models\User',
     ],
 
-    'defaultAuthenticationModel' => 'api\V1\User\Models\User'
+    'defaultAuthenticationModel' => 'api\V1\User\Models\User',
 
+    'seederRoles' => [
+    'admin',
+    'user'
+    ]
 ];
