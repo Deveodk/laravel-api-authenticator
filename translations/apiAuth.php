@@ -34,6 +34,12 @@ return [
         'toManyLoginAttempts' => 'There have been to many login attempts',
         'toManyAttemptsToCreateMagicLink' => 'There have been to many attempts to generate the magic link',
         'userNotAuthenticated' => 'User was not authenticated.',
-        'userNotFound' => 'User was not found'
+        'userNotFound' => 'User was not found',
+        'userHasNoPermission' => 'User has got insufficient permissions'
+    ],
+
+    /** Custom labels for authenticable models */
+    'authenticableCustomLabel' => [
+        'User' => 'User'
     ]
 ];

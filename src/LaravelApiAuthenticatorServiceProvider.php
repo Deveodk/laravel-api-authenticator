@@ -2,6 +2,7 @@
 
 namespace DeveoDK\LaravelApiAuthenticator;
 
+use DeveoDK\LaravelApiAuthenticator\Middleware\HasRole;
 use DeveoDK\LaravelApiAuthenticator\Middleware\HasToken;
 use DeveoDK\LaravelApiAuthenticator\Middleware\ValidToken;
 use Facebook\Facebook;
@@ -52,8 +53,9 @@ class LaravelApiAuthenticatorServiceProvider extends ServiceProvider
 
         $router->aliasMiddleware('jwt.hasToken', HasToken::class);
         $router->aliasMiddleware('jwt.validToken', ValidToken::class);
+        $router->aliasMiddleware('jwt.hasRole', HasRole::class);
 
-        $this->loadRoutesFrom( __DIR__ . '/routes.php');
+        $this->loadRoutesFrom(__DIR__  . '/routes.php');
 
         require __DIR__ . '/../database/seeders/BasicRolesSeeder.php';
 

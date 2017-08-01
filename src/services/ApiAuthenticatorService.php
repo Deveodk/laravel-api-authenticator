@@ -13,6 +13,7 @@ use DeveoDK\LaravelApiAuthenticator\Exceptions\TokenNotInvalidated;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\ToManyMagicLink;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\UserNotAuthenticated;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\UserNotFoundException;
+use DeveoDK\LaravelApiAuthenticator\Models\Authenticable;
 use DeveoDK\LaravelApiAuthenticator\Models\JwtMagicLink;
 use DeveoDK\LaravelApiAuthenticator\Notifications\MagicLink;
 use Illuminate\Contracts\Hashing\Hasher;
@@ -22,6 +23,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
+use ReflectionClass;
 
 class ApiAuthenticatorService extends BaseService
 {
@@ -80,11 +82,21 @@ class ApiAuthenticatorService extends BaseService
         $collection = new Collection();
 
         foreach ($models as $model) {
+            /** @var Authenticable $match */
             $match = (new $model())->where('email', '=', $params['email'])->first();
 
             if (!$match) {
                 continue;
             }
+
+            $label = (new ReflectionClass($match))->getShortName();
+
+            $labelName = $label;
+            if (trans('apiAuth.authenticableCustomLabel.'.$label) !== 'apiAuth.authenticableCustomLabel.'.$label) {
+                $labelName = trans('apiAuth.authenticableCustomLabel.'.$label);
+            }
+
+            $match['label'] = $labelName;
 
             $collection->prepend($match);
         }

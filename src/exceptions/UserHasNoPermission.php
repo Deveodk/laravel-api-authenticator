@@ -3,10 +3,10 @@ namespace DeveoDK\LaravelApiAuthenticator\Exceptions;
 
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class UserNotAuthenticated extends HttpException
+class UserHasNoPermission extends HttpException
 {
     public function __construct()
     {
-        parent::__construct(401, trans('apiAuth.exceptions.userNotAuthenticated'));
+        parent::__construct(403, trans('apiAuth.exceptions.userHasNoPermission'));
     }
 }
