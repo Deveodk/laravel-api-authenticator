@@ -57,6 +57,8 @@ class LaravelApiAuthenticatorServiceProvider extends ServiceProvider
 
         require __DIR__ . '/../database/seeders/BasicRolesSeeder.php';
 
+        require __DIR__ . '/helpers/AuthHelper.php';
+
         if ($this->app->runningInConsole()) {
             $this->registerMigrations();
         }

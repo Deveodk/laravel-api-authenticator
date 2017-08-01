@@ -14,7 +14,6 @@ class ImageService
     public function imageExist(Authenticable $authenticable, $filename)
     {
         $mediaCollections = $authenticable->getMedia('profile_pictures');
-
         foreach ($mediaCollections as $mediaCollection) {
             if ($mediaCollection->file_name === $filename) {
                 return true;
