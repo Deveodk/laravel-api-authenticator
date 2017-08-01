@@ -13,7 +13,7 @@ if (! function_exists('user')) {
 
         $payload = json_decode(JWTAuth::getPayload($token));
 
-        $modelName = (isset($params['model'])) ? $params['model'] :
+        $modelName = (isset($payload->model)) ? $payload->model :
             (new ReflectionClass(config('api.authenticator.defaultAuthenticationModel')))->getShortName();
 
         $authenticableModels = config('api.authenticator.authenticationModels');
