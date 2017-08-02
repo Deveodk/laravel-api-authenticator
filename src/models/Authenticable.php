@@ -13,6 +13,9 @@ abstract class Authenticable extends Model implements HasMedia
 {
     use Notifiable, HasMediaTrait, HasRoles;
 
+    /** @var string */
+    protected $guard_name = 'core';
+
     public function authenticateAttempts()
     {
         return $this->morphMany(JwtAuthenticateAttempt::class, 'authenticable');
