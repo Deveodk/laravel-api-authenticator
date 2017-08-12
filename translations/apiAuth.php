@@ -35,7 +35,8 @@ return [
         'toManyAttemptsToCreateMagicLink' => 'There have been to many attempts to generate the magic link',
         'userNotAuthenticated' => 'User was not authenticated.',
         'userNotFound' => 'User was not found',
-        'userHasNoPermission' => 'User has got insufficient permissions'
+        'userHasNoPermission' => 'User has got insufficient permissions',
+        'tokenNotRefreshed' => 'Token was not refreshed'
     ],
 
     /** Custom labels for authenticable models */

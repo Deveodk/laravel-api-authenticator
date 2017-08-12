@@ -2,6 +2,9 @@
 
 use Tymon\JWTAuth\Facades\JWTAuth;
 
+/**
+ * @
+ */
 if (! function_exists('user')) {
     function user()
     {

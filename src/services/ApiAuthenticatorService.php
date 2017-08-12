@@ -10,12 +10,14 @@ use DeveoDK\LaravelApiAuthenticator\events\UserWasAuthenticated;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\AccountNotFoundException;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\MagicLinkNotCreated;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\TokenNotInvalidated;
+use DeveoDK\LaravelApiAuthenticator\Exceptions\TokenNotRefreshed;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\ToManyMagicLink;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\UserNotAuthenticated;
 use DeveoDK\LaravelApiAuthenticator\Exceptions\UserNotFoundException;
 use DeveoDK\LaravelApiAuthenticator\Models\Authenticable;
 use DeveoDK\LaravelApiAuthenticator\Models\JwtMagicLink;
 use DeveoDK\LaravelApiAuthenticator\Notifications\MagicLink;
+use Exception;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
@@ -215,45 +217,13 @@ class ApiAuthenticatorService extends BaseService
      */
     public function refreshToken()
     {
-        $token = $this->jwtService->getToken();
-        $this->dispatcher->fire(new TokenRefreshed($token));
-    }
-
-    public function reset($email)
-    {
-        if (!$user = $this->getModel()->where('email', '=', $email)->first()) {
-            throw new UserNotFoundException();
+        try {
+            $token = $this->jwtService->parseToken()->refresh();
+            $this->dispatcher->fire(new TokenRefreshed($token));
+        } catch (Exception $exception) {
+            throw new TokenNotRefreshed();
         }
-        DB::table('password_resets')->where('email', '=', $user->email)->delete();
-        $token = Uuid::generate(4);
 
-        DB::table('password_resets')->insert(
-            ['email' => $user->email, 'token' => $token, 'created_at' => Carbon::now()]
-        );
-        Notification::send($user, new PasswordResetNotification($user, $token));
-
-        return $this->SuccessTransformer();
-    }
-
-    public function CheckResetPasswordToken($token)
-    {
-        $reset = DB::table('password_resets')->where('token', '=', $token)->first();
-        if(!$reset){
-            throw new TokenNotFoundException();
-        }
-        return $this->SuccessTransformer();
-    }
-
-    public function ResetPassword($token, $params)
-    {
-        $reset = DB::table('password_resets')->where('token', '=', $token)->first();
-        if (!$reset) {
-            throw new TokenNotFoundException();
-        }
-        $this->getModel()
-            ->where('email', '=', $reset->email)
-            ->update($params);
-        DB::table('password_resets')->where('token', '=', $token)->delete();
-        return $this->SuccessTransformer();
+        return $token;
     }
 }

@@ -71,14 +71,12 @@ class AuthController extends BaseController
     }
 
     /**
-     * The actual refresh process gets handled in the middleware
-     * @param Request $request
+     * Refresh token
      * @return JsonResponse
      */
-    public function authenticatedRefresh(Request $request)
+    public function authenticatedRefresh()
     {
-        $this->apiAuthenticatorService->refreshToken();
-        $token = str_replace("Bearer ", "", $request->header('authorization'));
+        $token = $this->apiAuthenticatorService->refreshToken();
         $data = $this->apiAuthenticatorService->setTransformer(new AuthRefreshedTransformer())->transformItem($token);
 
         return response()->json($data)->header('Authorization', $token);
