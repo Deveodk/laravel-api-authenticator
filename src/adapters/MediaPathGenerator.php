@@ -21,6 +21,6 @@ class MediaPathGenerator implements PathGenerator
      */
     public function getPathForConversions(Media $media) : string
     {
-        return $this->getPath($media).'c/';
+        return $this->getPath($media).'conversions/';
     }
 }
